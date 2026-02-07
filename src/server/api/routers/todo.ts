@@ -15,7 +15,7 @@ export const todoRouter = createTRPCRouter({
       includeCompleted: z.boolean().optional().default(true),
       limit: z.number().min(1).max(100).optional(),
       skip: z.number().min(0).optional(),
-    }).optional().default({}))
+    }).optional().default({ includeCompleted: true }))
     .query(async ({ ctx, input }) => {
       try {
         const todoService = ctx.container.todoService;

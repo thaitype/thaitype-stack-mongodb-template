@@ -4,22 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- **Build**: `npm run build` or `pnpm build`
-- **Development**: `npm run dev` or `pnpm dev` (with Turbo)
-- **Lint**: `npm run lint` (run lint check)
-- **Lint Fix**: `npm run lint:fix` (auto-fix lint issues)
-- **Type Check**: `npm run typecheck` or `npm run check` (includes lint + typecheck)
-- **Format Check**: `npm run format:check` (check Prettier formatting)
-- **Format Write**: `npm run format:write` (auto-format code)
-- **Preview**: `npm run preview` (build and start)
-- **Package Manager**: Uses pnpm (see `package.json` packageManager field)
+- **Build**: `bun run build` or `pbun build`
+- **Development**: `bun run dev` or `pbun dev` (with Turbo)
+- **Lint**: `bun run lint` (run lint check)
+- **Lint Fix**: `bun run lint:fix` (auto-fix lint issues)
+- **Type Check**: `bun run typecheck` or `bun run check` (includes lint + typecheck)
+- **Format Check**: `bun run format:check` (check Prettier formatting)
+- **Format Write**: `bun run format:write` (auto-format code)
+- **Preview**: `bun run preview` (build and start)
+- **Package Manager**: Uses pbun (see `package.json` packageManager field)
 
 ## Architecture Overview
 
-This is a Next.js 15 application built with the T3 Stack pattern, implementing a clean entity-based repository architecture.
+This is a Next.js 16 application built with the T3 Stack pattern, implementing a clean entity-based repository architecture.
 
 ### Tech Stack
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript
 - **Database**: MongoDB with Monguard for audit logging
 - **API**: tRPC for type-safe APIs

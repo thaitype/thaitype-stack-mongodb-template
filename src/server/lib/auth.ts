@@ -30,7 +30,8 @@ async function initializeAuth() {
   const db = mongoClient.db(env.DB_NAME);
 
   authInstance = betterAuth({
-    database: mongodbAdapter(db),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    database: mongodbAdapter(db as any),
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false, // Set to true in production
