@@ -521,7 +521,7 @@ export class MongoUserRepository extends BaseMongoRepository<DbUserEntity> imple
     }
 
     const results = await this.collection.find(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dbFilter as any
       , {
       limit: options.limit,
@@ -547,7 +547,7 @@ export class MongoUserRepository extends BaseMongoRepository<DbUserEntity> imple
     }
 
     return await this.collection.count(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dbFilter as any, 
       filter.isActive === false // Include soft deleted if looking for inactive users
     );

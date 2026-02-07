@@ -62,7 +62,8 @@ export type AssertEqual<T, U> = (<V>() => V extends T ? 1 : 2) extends <V>() => 
  * );
  * ```
  */
-export const matches = <T>() => <S extends z.ZodType<T, z.ZodTypeDef, unknown>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const matches = <T>() => <S extends z.ZodType<T, any, any>>(
   schema: AssertEqual<S['_output'], T> extends true
     ? S
     : S & {
@@ -120,11 +121,11 @@ export const commonValidation = {
  * Converts Zod errors to user-friendly validation error messages
  */
 export function formatZodError(error: z.ZodError): string {
-  const messages = error.errors.map(err => {
+  const messages = error.issues.map(err => {
     const path = err.path.length > 0 ? `${err.path.join('.')}: ` : '';
     return `${path}${err.message}`;
   });
-  
+
   return messages.join('; ');
 }
 

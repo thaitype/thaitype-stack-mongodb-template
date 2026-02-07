@@ -199,7 +199,7 @@ export const UserFilterQuerySchema = z.object({
   isActive: z.boolean().optional(),
   limit: z.number().int().min(1).max(1000).default(100).optional(),
   skip: z.number().int().min(0).default(0).optional(),
-  sort: z.record(z.enum(['1', '-1']).transform(val => val === '1' ? 1 : -1)).optional(),
+  sort: z.record(z.string(), z.enum(['1', '-1']).transform(val => val === '1' ? 1 : -1)).optional(),
 });
 
 // =============================================================================
