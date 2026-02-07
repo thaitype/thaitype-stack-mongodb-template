@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Format Write**: `bun run format:write` (auto-format code)
 - **Preview**: `bun run preview` (build and start)
 - **Package Manager**: Uses pbun (see `package.json` packageManager field)
+- **Check All**: `bun run all` (lint, typecheck, format check)
 
 ## Architecture Overview
 

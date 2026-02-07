@@ -240,20 +240,20 @@ export function createRepositoryContext(userId: string, traceId?: string): Repos
 
 ## Validation Architecture
 
-### Zod Schema with Type Alignment
+### Zod Schema with Type Alignment (Zod v4)
 
 Use the `matches<T>()` utility to ensure Zod schemas align with TypeScript types:
 
 ```typescript
 // ~/server/domain/repositories/schemas/todo-repository-schemas.ts
-import { matches } from '~/server/lib/validation/zod-matches';
+import { matches } from '~/server/lib/validation/zod-utils';
 import { z } from 'zod';
-import { zObjectId, commonValidation } from '~/server/lib/validation';
+import { zObjectId, commonValidation } from '~/server/lib/validation/zod-utils';
 
 // Type definitions derived from entity
 export type RepoTodoCreateData = Omit<DbTodoEntity, '_id' | 'createdAt' | 'updatedAt' | 'deletedAt'>;
 
-// Schema that matches the type exactly
+// Schema that matches the type exactly (Zod v4)
 export const RepoTodoCreateSchema = matches<RepoTodoCreateData>()(
   z.object({
     title: commonValidation.nonEmptyString.max(200),
@@ -267,17 +267,29 @@ export const RepoTodoCreateSchema = matches<RepoTodoCreateData>()(
 const _typeCheck: RepoTodoCreateData = {} as z.infer<typeof RepoTodoCreateSchema>;
 ```
 
-### Common Validation Utilities
+### Common Validation Utilities (Zod v4)
 
 ```typescript
-// ~/server/lib/validation/common.ts
+// ~/server/lib/validation/zod-utils.ts
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
 
-export const zObjectId = z.custom<ObjectId>(
-  (val) => val instanceof ObjectId || ObjectId.isValid(val?.toString()),
-  { message: 'Invalid ObjectId' }
-).transform(val => typeof val === 'string' ? new ObjectId(val) : val);
+// Zod v4 compatible ObjectId validator and transformer
+export const zObjectId = z
+  .string()
+  .refine((val) => ObjectId.isValid(val), {
+    message: 'Invalid ObjectId format. Expected 24-character hex string.'
+  })
+  .transform((val) => new ObjectId(val));
+
+// Optional ObjectId transformer
+export const zObjectIdOptional = z
+  .string()
+  .optional()
+  .refine((val) => val === undefined || ObjectId.isValid(val), {
+    message: 'Invalid ObjectId format. Expected 24-character hex string or undefined.'
+  })
+  .transform((val) => val ? new ObjectId(val) : undefined);
 
 export const commonValidation = {
   nonEmptyString: z.string().min(1, 'Required'),
@@ -285,6 +297,15 @@ export const commonValidation = {
   objectId: zObjectId,
 };
 ```
+
+### Zod v4 Breaking Changes
+
+**Important**: This project uses Zod v4. Key differences from v3:
+
+1. **`z.record()` requires 2 arguments**: `z.record(keySchema, valueSchema)`
+2. **Error property**: Use `error.issues` instead of `error.errors`
+3. **Nested defaults**: Parent defaults must include child defaults
+4. **Type parameters**: Use `any` instead of `ZodTypeDef` in generics
 
 ---
 
@@ -310,14 +331,14 @@ export const todoRouter = createTRPCRouter({
       try {
         const userId = ctx.session.user.id;
         const todo = await ctx.todoService.createTodo(userId, input);
-        
+
         return {
           success: true,
           todo
         };
       } catch (error) {
         ctx.logger.error('Failed to create todo', { error, input });
-        
+
         if (error instanceof ValidationError) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
@@ -325,7 +346,7 @@ export const todoRouter = createTRPCRouter({
             cause: error
           });
         }
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to create todo'
@@ -335,14 +356,14 @@ export const todoRouter = createTRPCRouter({
 
   getAll: protectedProcedure
     .input(z.object({
-      includeCompleted: z.boolean().default(true),
+      includeCompleted: z.boolean().optional().default(true),
       limit: z.number().min(1).max(100).optional(),
       skip: z.number().min(0).optional(),
-    }))
+    }).optional().default({ includeCompleted: true }))  // Zod v4: nested defaults
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const todos = await ctx.todoService.getTodos(userId, input);
-      
+
       return {
         todos,
         total: todos.length
@@ -499,7 +520,7 @@ return (
 );
 ```
 
-### Form Validation Patterns
+### Form Validation Patterns (Zod v4)
 
 ```typescript
 // ~/app/_components/AddTodoForm.tsx
@@ -523,7 +544,11 @@ export function AddTodoForm() {
           todoSchema.pick({ title: true }).parse({ title: value });
           return null;
         } catch (error) {
-          return error.errors[0]?.message ?? 'Invalid title';
+          // Zod v4: Use error.issues instead of error.errors
+          if (error instanceof z.ZodError) {
+            return error.issues[0]?.message ?? 'Invalid title';
+          }
+          return 'Invalid title';
         }
       },
     },
@@ -766,11 +791,47 @@ async create(input: unknown): Promise<Todo> {
   return this.collection.create(input); // Dangerous!
 }
 
-// ✅ DO: Validate with Zod schemas
+// ✅ DO: Validate with Zod schemas (Zod v4)
 async create(input: RepoTodoCreateData): Promise<Todo> {
   const validatedInput = RepoTodoCreateSchema.parse(input);
   return this.collection.create(validatedInput);
 }
+```
+
+### ❌ 7. Zod v3 Patterns in v4 Codebase
+
+```typescript
+// ❌ DON'T: Use Zod v3 patterns
+const schema = z.object({
+  metadata: z.record(z.string()).optional(),  // Missing key schema!
+});
+
+// Error handling with v3 API
+catch (error) {
+  return error.errors[0]?.message;  // Use .issues in v4!
+}
+
+// Nested defaults without parent match
+z.object({
+  field: z.boolean().default(true)
+}).optional().default({})  // Empty object won't work!
+
+// ✅ DO: Use Zod v4 patterns
+const schema = z.object({
+  metadata: z.record(z.string(), z.string()).optional(),  // Two arguments
+});
+
+// Error handling with v4 API
+catch (error) {
+  if (error instanceof z.ZodError) {
+    return error.issues[0]?.message;  // Use .issues
+  }
+}
+
+// Nested defaults with parent match
+z.object({
+  field: z.boolean().optional().default(true)
+}).optional().default({ field: true })  // Parent includes child default
 ```
 
 ### ❌ 5. Missing Error Context
@@ -858,7 +919,7 @@ updateStatus(id: string, input: TodoStatusUpdate): Promise<void>
 
 4. **Add Validation**:
 ```typescript
-// Add Zod schemas with matches<T>() utility
+// Add Zod schemas with matches<T>() utility (Zod v4)
 export const RepoTodoCreateSchema = matches<RepoTodoCreateData>()(
   z.object({
     title: z.string().min(1).max(200),
@@ -868,6 +929,179 @@ export const RepoTodoCreateSchema = matches<RepoTodoCreateData>()(
   })
 );
 ```
+
+---
+
+## Zod v4 Migration Guide
+
+This project uses **Zod v4**, which includes breaking changes from v3. This section helps you work with Zod v4 correctly.
+
+### Breaking Changes Summary
+
+| Change | Zod v3 | Zod v4 |
+|--------|--------|--------|
+| `z.record()` | Single argument | Requires 2 arguments |
+| Error property | `error.errors` | `error.issues` |
+| Nested defaults | Empty object OK | Must match child defaults |
+| Type parameters | `ZodTypeDef` | Use `any` |
+
+### 1. `z.record()` Syntax
+
+```typescript
+// ❌ Zod v3
+const UserFilterQuerySchema = z.object({
+  sort: z.record(z.enum(['1', '-1'])).optional(),
+  metadata: z.record(z.string()).optional(),
+});
+
+// ✅ Zod v4
+const UserFilterQuerySchema = z.object({
+  sort: z.record(z.string(), z.enum(['1', '-1'])).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
+});
+```
+
+### 2. Error Handling
+
+```typescript
+// ❌ Zod v3
+export function formatZodError(error: z.ZodError): string {
+  const messages = error.errors.map(err => {
+    return `${err.path.join('.')}: ${err.message}`;
+  });
+  return messages.join('; ');
+}
+
+// ✅ Zod v4
+export function formatZodError(error: z.ZodError): string {
+  const messages = error.issues.map(err => {
+    return `${err.path.join('.')}: ${err.message}`;
+  });
+  return messages.join('; ');
+}
+```
+
+### 3. Nested Defaults
+
+```typescript
+// ❌ Zod v3 - This worked
+.input(z.object({
+  includeCompleted: z.boolean().optional().default(true),
+  limit: z.number().optional(),
+}).optional().default({}))  // Empty object
+
+// ✅ Zod v4 - Parent must include child defaults
+.input(z.object({
+  includeCompleted: z.boolean().optional().default(true),
+  limit: z.number().optional(),
+}).optional().default({ includeCompleted: true }))  // Matches child default
+```
+
+### 4. Generic Type Utilities
+
+```typescript
+// ❌ Zod v3
+export const matches = <T>() => <S extends z.ZodType<T, z.ZodTypeDef, unknown>>(
+  schema: S
+): S => schema;
+
+// ✅ Zod v4
+export const matches = <T>() => <S extends z.ZodType<T, any, any>>(
+  schema: S
+): S => schema;
+```
+
+### 5. ObjectId Transformers (Updated for v4)
+
+```typescript
+// Zod v4 compatible ObjectId validators
+import { z } from 'zod';
+import { ObjectId } from 'mongodb';
+
+// Single ObjectId
+export const zObjectId = z
+  .string()
+  .refine((val) => ObjectId.isValid(val), {
+    message: 'Invalid ObjectId format. Expected 24-character hex string.'
+  })
+  .transform((val) => new ObjectId(val));
+
+// Optional ObjectId
+export const zObjectIdOptional = z
+  .string()
+  .optional()
+  .refine((val) => val === undefined || ObjectId.isValid(val), {
+    message: 'Invalid ObjectId format. Expected 24-character hex string or undefined.'
+  })
+  .transform((val) => val ? new ObjectId(val) : undefined);
+
+// ObjectId Array
+export const zObjectIdArray = z
+  .array(z.string())
+  .refine((arr) => arr.every(id => ObjectId.isValid(id)), {
+    message: 'All items must be valid ObjectId format (24-character hex strings).'
+  })
+  .transform((arr) => arr.map(id => new ObjectId(id)));
+```
+
+### Common v4 Patterns
+
+#### tRPC Input with Optional Object
+
+```typescript
+// Pattern for optional input objects with defaults
+getAll: protectedProcedure
+  .input(z.object({
+    includeCompleted: z.boolean().optional().default(true),
+    limit: z.number().min(1).max(100).optional(),
+    skip: z.number().min(0).optional(),
+  }).optional().default({ includeCompleted: true }))
+  .query(async ({ ctx, input }) => {
+    // input.includeCompleted is guaranteed to be true if not provided
+  });
+```
+
+#### Query Schemas with Record Types
+
+```typescript
+// Pattern for query schemas with sorting/filtering
+export const TodoQuerySchema = z.object({
+  userId: z.string().min(24).max(24),
+  includeCompleted: z.boolean().optional(),
+  limit: z.number().min(1).max(100).optional(),
+  skip: z.number().min(0).optional(),
+  // Record type for MongoDB sort syntax
+  sort: z.record(z.string(), z.union([z.literal(1), z.literal(-1)])).optional(),
+});
+```
+
+#### Form Validation
+
+```typescript
+// Pattern for form validation with error handling
+const handleValidation = (value: string) => {
+  try {
+    schema.parse(value);
+    return null;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return error.issues[0]?.message ?? 'Validation error';
+    }
+    return 'Unknown error';
+  }
+};
+```
+
+### Migration Checklist
+
+When adding new schemas or updating existing ones:
+
+- [ ] Use `z.record(keySchema, valueSchema)` with 2 arguments
+- [ ] Access validation errors via `error.issues` not `error.errors`
+- [ ] Ensure nested defaults match parent object defaults
+- [ ] Use `any` instead of `ZodTypeDef` in generic utilities
+- [ ] Test schema validation with actual data
+- [ ] Update error handling to use `error.issues`
 
 ---
 

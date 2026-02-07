@@ -317,7 +317,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version History
 
-* `main` — Next.js 16, Bun as package manager, Zod v4, better-auth 1.4 and latest dependency upgrades
+* `main` — Next.js 16, Bun as package manager, Zod v4, Matine v8, better-auth 1.4 and latest dependency upgrades
 * `release/v-next15` — Next.js 15, pnpm, Zod v3 (legacy stable branch)
 
 
