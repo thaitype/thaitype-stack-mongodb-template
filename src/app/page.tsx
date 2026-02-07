@@ -17,6 +17,8 @@ import { TodoList } from './_components/TodoList';
 import { AppHeader } from './_components/AppHeader';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   const { data: session, isPending } = useSession();
 

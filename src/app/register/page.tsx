@@ -2,6 +2,8 @@ import { Container, Center, Box, Title, Text, Stack } from '@mantine/core';
 import { RegisterForm } from '~/components/auth/RegisterForm';
 import { IconChecklist } from '@tabler/icons-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function RegisterPage() {
   return (
     <Container size="sm" h="100vh">

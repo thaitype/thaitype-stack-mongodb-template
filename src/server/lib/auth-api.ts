@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { auth } from './auth';
+import { getAuth } from './auth';
 import { getDatabase } from './db';
 import type { DbUserEntity } from '../infrastructure/entities/index';
 
@@ -70,8 +70,10 @@ export class AuthUserAPI {
   private authInstance: BetterAuthInstance | null = null;
 
   private async getAuthInstance(): Promise<BetterAuthInstance> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.authInstance ??= auth as any;
+    if (!this.authInstance) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.authInstance = await getAuth() as any;
+    }
     if(!this.authInstance) {
       throw new Error('Better Auth instance not initialized');
     }
