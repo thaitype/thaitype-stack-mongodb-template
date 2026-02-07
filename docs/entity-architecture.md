@@ -123,7 +123,7 @@ import { matches } from '~/lib/validation/zod-utils';
 // Type definition
 export type CourseBasicInfoPartialUpdate = Partial<Pick<DbCourseEntity, 'title' | 'description' | 'slug'>>;
 
-// Aligned schema
+// Aligned schema (Zod v4)
 export const RepoCourseBasicInfoSchema = matches<CourseBasicInfoPartialUpdate>()(
   z.object({
     title: commonValidation.nonEmptyString.optional(),
@@ -131,6 +131,11 @@ export const RepoCourseBasicInfoSchema = matches<CourseBasicInfoPartialUpdate>()
     slug: commonValidation.slug.optional(),
   }).partial()
 );
+
+// Note: Zod v4 changes:
+// - matches<T>() now uses 'any' for type parameters instead of ZodTypeDef
+// - z.record() requires 2 arguments: z.record(keySchema, valueSchema)
+// - Nested defaults must match parent defaults
 ```
 
 ### Runtime Validation Flow
@@ -179,13 +184,28 @@ private parseObjectId(id: string): ObjectId {
   return new ObjectId(id);
 }
 
-// Zod utilities for automatic conversion
+// Zod utilities for automatic conversion (Zod v4)
 import { zObjectId, zObjectIdArray } from '~/lib/validation/zod-utils';
 
 const schema = z.object({
   instructors: zObjectIdArray,  // string[] → ObjectId[] automatically
   courseId: zObjectId,          // string → ObjectId automatically
 });
+
+// Zod v4 ObjectId transformers
+export const zObjectId = z
+  .string()
+  .refine((val) => ObjectId.isValid(val), {
+    message: 'Invalid ObjectId format. Expected 24-character hex string.'
+  })
+  .transform((val) => new ObjectId(val));
+
+export const zObjectIdArray = z
+  .array(z.string())
+  .refine((arr) => arr.every(id => ObjectId.isValid(id)), {
+    message: 'All items must be valid ObjectId format (24-character hex strings).'
+  })
+  .transform((arr) => arr.map(id => new ObjectId(id)));
 ```
 
 ## Implementation Patterns
@@ -791,7 +811,7 @@ describe('CourseRepository', () => {
 try {
   const validatedData = schema.parse(input);
   const result = await this.collection.updateById(id, { $set: validatedData });
-  
+
   this.appContext.logger.info('Operation completed successfully', {
     operation: 'updateBasicInfo',
     entityId: id,
@@ -807,6 +827,144 @@ try {
   throw error;
 }
 ```
+
+### Zod v4 Migration Guide
+
+This project uses Zod v4, which includes several breaking changes from v3. Here's what you need to know:
+
+#### Key Breaking Changes
+
+**1. `z.record()` now requires 2 arguments**
+
+```typescript
+// ❌ Zod v3 - Single argument
+const schema = z.object({
+  metadata: z.record(z.string()).optional(),
+  sort: z.record(z.union([z.literal(1), z.literal(-1)])).optional(),
+});
+
+// ✅ Zod v4 - Two arguments (key schema, value schema)
+const schema = z.object({
+  metadata: z.record(z.string(), z.string()).optional(),
+  sort: z.record(z.string(), z.union([z.literal(1), z.literal(-1)])).optional(),
+});
+```
+
+**2. Type parameter changes in `matches<T>()` utility**
+
+```typescript
+// ❌ Zod v3 - Used ZodTypeDef
+export const matches = <T>() => <S extends z.ZodType<T, z.ZodTypeDef, unknown>>(
+  schema: AssertEqual<S['_output'], T> extends true ? S : never
+): S => schema;
+
+// ✅ Zod v4 - Use 'any' for type parameters
+export const matches = <T>() => <S extends z.ZodType<T, any, any>>(
+  schema: AssertEqual<S['_output'], T> extends true ? S : never
+): S => schema;
+```
+
+**3. Error property renamed: `errors` → `issues`**
+
+```typescript
+// ❌ Zod v3 - Used error.errors
+export function formatZodError(error: z.ZodError): string {
+  const messages = error.errors.map(err => {
+    const path = err.path.length > 0 ? `${err.path.join('.')}: ` : '';
+    return `${path}${err.message}`;
+  });
+  return messages.join('; ');
+}
+
+// ✅ Zod v4 - Use error.issues
+export function formatZodError(error: z.ZodError): string {
+  const messages = error.issues.map(err => {
+    const path = err.path.length > 0 ? `${err.path.join('.')}: ` : '';
+    return `${path}${err.message}`;
+  });
+  return messages.join('; ');
+}
+```
+
+**4. Nested defaults require matching parent defaults**
+
+```typescript
+// ❌ Zod v3 - Empty object default worked
+z.object({
+  includeCompleted: z.boolean().optional().default(true),
+  limit: z.number().optional(),
+}).optional().default({})
+
+// ✅ Zod v4 - Parent default must include child defaults
+z.object({
+  includeCompleted: z.boolean().optional().default(true),
+  limit: z.number().optional(),
+}).optional().default({ includeCompleted: true })
+```
+
+#### Updated Validation Utilities
+
+```typescript
+// ~/server/lib/validation/zod-utils.ts (Zod v4 compatible)
+import { z } from 'zod';
+import { ObjectId } from 'mongodb';
+
+// ObjectId transformer (v4 compatible)
+export const zObjectId = z
+  .string()
+  .refine((val) => ObjectId.isValid(val), {
+    message: 'Invalid ObjectId format. Expected 24-character hex string.'
+  })
+  .transform((val) => new ObjectId(val));
+
+// Optional ObjectId transformer
+export const zObjectIdOptional = z
+  .string()
+  .optional()
+  .refine((val) => val === undefined || ObjectId.isValid(val), {
+    message: 'Invalid ObjectId format. Expected 24-character hex string or undefined.'
+  })
+  .transform((val) => val ? new ObjectId(val) : undefined);
+
+// ObjectId array transformer
+export const zObjectIdArray = z
+  .array(z.string())
+  .refine((arr) => arr.every(id => ObjectId.isValid(id)), {
+    message: 'All items must be valid ObjectId format (24-character hex strings).'
+  })
+  .transform((arr) => arr.map(id => new ObjectId(id)));
+
+// Type-safe matches utility (v4 compatible)
+export const matches = <T>() => <S extends z.ZodType<T, any, any>>(
+  schema: AssertEqual<S['_output'], T> extends true
+    ? S
+    : S & {
+        'types do not match': {
+          expected: T;
+          received: S['_output'];
+        };
+      }
+): S => schema;
+
+// Error formatting (v4 compatible)
+export function formatZodError(error: z.ZodError): string {
+  const messages = error.issues.map(err => {
+    const path = err.path.length > 0 ? `${err.path.join('.')}: ` : '';
+    return `${path}${err.message}`;
+  });
+  return messages.join('; ');
+}
+```
+
+#### Migration Checklist
+
+When working with Zod schemas in this project:
+
+- ✅ Always use `z.record(z.string(), valueSchema)` with 2 arguments
+- ✅ Use `error.issues` instead of `error.errors` when handling validation errors
+- ✅ Ensure nested defaults match parent object defaults
+- ✅ Use `any` type parameters in generic Zod utilities
+- ✅ Import validation utilities from `~/server/lib/validation/zod-utils`
 
 ## Conclusion
 
