@@ -1,6 +1,6 @@
 # Todo App Template - Next.js Enterprise Stack
 
-A production-ready **Todo Application Template** built with Next.js 15, implementing enterprise-grade patterns and modern development practices. This template serves as a robust foundation for building scalable full-stack applications with authentication, CRUD operations, and real-time updates.
+A production-ready **Todo Application Template** built with Next.js 16, implementing enterprise-grade patterns and modern development practices. This template serves as a robust foundation for building scalable full-stack applications with authentication, CRUD operations, and real-time updates.
 
 ## ✨ Features
 
@@ -10,7 +10,7 @@ A production-ready **Todo Application Template** built with Next.js 15, implemen
 - 🏗️ **Enterprise Architecture** - Entity-based repository pattern
 - 🔒 **Type Safety** - Full TypeScript with tRPC API layer
 - 📊 **Database** - MongoDB with audit logging via Monguard
-- ⚡ **Performance** - Next.js 15 with App Router and React 19
+- ⚡ **Performance** - Next.js 16 with App Router and React 19
 - 🎯 **Production Ready** - ESLint, Prettier, structured logging
 
 ## Screenshot
@@ -19,7 +19,7 @@ A production-ready **Todo Application Template** built with Next.js 15, implemen
 ## 🚀 Tech Stack
 
 ### Core Framework
-- **[Next.js 15](https://nextjs.org)** - React framework with App Router
+- **[Next.js 16](https://nextjs.org)** - React framework with App Router
 - **[React 19](https://react.dev)** - Latest React with concurrent features
 - **[TypeScript](https://typescriptlang.org)** - Strict type safety
 
@@ -314,6 +314,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - UI components by [Mantine](https://mantine.dev)
 - Database management by [Monguard](https://github.com/thaitype/monguard)
 - Authentication by [Better Auth](https://www.better-auth.com)
+
+## Version History
+
+- branch `main` - Next.js 16 (current version)
+- branch `release/v-next15` - Next.js 15
 
 ---
 
