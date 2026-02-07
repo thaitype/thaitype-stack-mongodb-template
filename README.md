@@ -75,14 +75,14 @@ src/
 
 ### Prerequisites
 - **Node.js 18+** 
-- **pnpm** (recommended) or npm
-- **MongoDB** instance (local or MongoDB Atlas)
+- **bun** (recommended) or npm
+- **MongoDB** instance (local, MongoDB Atlas or Azure Cosmos DB MongoDB)
 
 ### 1. Clone and Install
 ```bash
 git clone <repository-url> my-todo-app
 cd my-todo-app
-pnpm install
+bun install
 ```
 
 ### 2. Environment Setup
@@ -107,7 +107,7 @@ PORT="3000"
 
 ### 3. Start Development
 ```bash
-pnpm dev
+bun dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see your app!
@@ -116,20 +116,23 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 
 ```bash
 # Development
-pnpm dev              # Start development server with Turbo
-pnpm build            # Build for production
-pnpm start            # Start production server
-pnpm preview          # Build and start production server
+bun dev              # Start development server with Turbo
+bun run build            # Build for production
+bun start            # Start production server
+bun preview          # Build and start production server
 
 # Code Quality
-pnpm lint             # Run ESLint
-pnpm lint:fix         # Fix ESLint errors
-pnpm typecheck        # Run TypeScript check
-pnpm check            # Run lint + typecheck together
+bun lint             # Run ESLint
+bun lint:fix         # Fix ESLint errors
+bun typecheck        # Run TypeScript check
+bun check            # Run lint + typecheck together
 
 # Formatting
-pnpm format:check     # Check Prettier formatting
-pnpm format:write     # Apply Prettier formatting
+bun format:check     # Check Prettier formatting
+bun format:write     # Apply Prettier formatting
+
+# Check All
+bun all       # Lint, typecheck, format check, build
 ```
 
 ## 🏛️ Design Patterns
@@ -235,7 +238,7 @@ All entities include automatic audit fields via Monguard:
 
 ### Production Build
 ```bash
-pnpm build
+bun build
 ```
 
 ### Environment Variables
@@ -251,12 +254,12 @@ NEXT_PUBLIC_BETTER_AUTH_URL="https://yourdomain.com/api/auth"
 
 #### Vercel (Recommended)
 ```bash
-pnpm dlx vercel
+bun dlx vercel
 ```
 
 #### Railway
 ```bash
-pnpm dlx @railway/cli deploy
+bun dlx @railway/cli deploy
 ```
 
 #### Docker
@@ -299,7 +302,7 @@ docker run -p 3000:3000 todo-app
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes following the established patterns
-4. Run quality checks: `pnpm check`
+4. Run quality checks: `bun check`
 5. Commit your changes: `git commit -m 'Add amazing feature'`
 6. Push to the branch: `git push origin feature/amazing-feature`
 7. Open a Pull Request
@@ -318,7 +321,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Version History
 
 * `main` — Next.js 16, Bun as package manager, Zod v4, Matine v8, better-auth 1.4 and latest dependency upgrades
-* `release/v-next15` — Next.js 15, pnpm, Zod v3 (legacy stable branch)
+* `release/v-next15` — Next.js 15, bun, Zod v3 (legacy stable branch)
 
 
 ---
