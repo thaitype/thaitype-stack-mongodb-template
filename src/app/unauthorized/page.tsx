@@ -2,6 +2,8 @@ import { Container, Title, Text, Button, Stack, Alert } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function UnauthorizedPage() {
   return (
     <Container size="sm" py="xl">
@@ -23,9 +25,11 @@ export default function UnauthorizedPage() {
           </Text>
         </div>
 
-        <Button component={Link} href="/" size="lg">
-          Go Home
-        </Button>
+        <Link href="/" style={{ textDecoration: 'none' }}>
+          <Button size="lg">
+            Go Home
+          </Button>
+        </Link>
       </Stack>
     </Container>
   );

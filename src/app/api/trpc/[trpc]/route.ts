@@ -32,3 +32,6 @@ const handler = (req: NextRequest) =>
   });
 
 export { handler as GET, handler as POST };
+
+// Mark this route as dynamic to prevent build-time database connection attempts
+export const dynamic = "force-dynamic";
