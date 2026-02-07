@@ -16,57 +16,54 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@mantine/core": "7.17.8",
+    "@mantine/form": "7.17.8",
+    "@mantine/hooks": "7.17.8",
+    "@mantine/modals": "7.17.8",
+    "@mantine/notifications": "7.17.8",
     "@t3-oss/env-nextjs": "^0.12.0",
-    "@tanstack/react-query": "^5.69.0",
-    "@trpc/client": "^11.0.0",
-    "@trpc/react-query": "^11.0.0",
-    "@trpc/server": "^11.0.0",
+    "@tabler/icons-react": "^3.36.1",
+    "@tanstack/react-query": "^5.90.20",
+    "@thaitype/core-utils": "^1.1.1",
+    "@trpc/client": "^11.9.0",
+    "@trpc/react-query": "^11.9.0",
+    "@trpc/server": "^11.9.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "better-auth": "^1.4.18",
+    "dotenv": "^16.6.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^6.21.0",
+    "monguard": "0.13.0",
     "next": "16.1.6",
+    "pino": "^9.14.0",
+    "pino-pretty": "^13.1.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "server-only": "^0.0.1",
-    "superjson": "^2.2.1",
-    "zod": "^3.24.2",
-    "@thaitype/core-utils": "^1.1.1",
-    "@thaitype/reorder": "^0.3.0",
-    "@types/jsonwebtoken": "^9.0.10",
-    "better-auth": "^1.2.9",
-    "dotenv": "^16.6.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.17.0",
-    "monguard": "0.13.0",
-    "pino": "^9.7.0",
-    "pino-pretty": "^13.0.0",
-    "@mantine/core": "7.17.8",
-    "@mantine/hooks": "7.17.8",
-    "@mantine/form": "7.17.8",
-    "@mantine/notifications": "7.17.8",
-    "@mantine/modals": "7.17.8",
-    "@tabler/icons-react": "^3.21.0"
+    "superjson": "^2.2.6",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "@tailwindcss/postcss": "^4.0.15",
-    "@types/node": "^20.14.10",
+    "@eslint/eslintrc": "^3.3.3",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^20.19.32",
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
-    "eslint": "^9.23.0",
+    "eslint": "^9.39.2",
     "eslint-config-next": "16.1.6",
-    "postcss": "^8.5.3",
-    "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "tailwindcss": "^4.0.15",
-    "typescript": "^5.8.2",
-    "typescript-eslint": "^8.27.0"
+    "postcss": "^8.5.6",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
   },
   "ct3aMetadata": {
     "initVersion": "7.39.3"
   },
-  "packageManager": "pnpm@10.12.4",
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.13",
-      "@types/react-dom": "19.2.3"
-    }
+  "packageManager": "pnpm@10.28.2",
+  "overrides": {
+    "@types/react": "19.2.13",
+    "@types/react-dom": "19.2.3"
   }
 }
